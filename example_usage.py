@@ -91,9 +91,8 @@ def example_explicit_credentials():
     print("Initialize with explicit credentials:")
     print("""
     client = AribaAuthClient(
-        api_key='your_api_key',
-        client_secret='your_secret',
-        realm='your_realm'
+        username='your_username',
+        password='your_password'
     )
     token = client.get_bearer_token()
     """)

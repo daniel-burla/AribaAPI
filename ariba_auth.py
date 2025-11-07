@@ -8,33 +8,31 @@ import requests
 from typing import Dict, Optional
 from dotenv import load_dotenv
 import time
+import base64
 
 
 class AribaAuthClient:
-    """Client for handling Ariba API OAuth authentication."""
+    """Client for handling Ariba API OAuth authentication using Basic Auth."""
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        client_secret: Optional[str] = None,
-        realm: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         base_url: str = "https://api.ariba.com"
     ):
         """
         Initialize the Ariba Authentication Client.
 
         Args:
-            api_key: Ariba API key (client_id). If not provided, reads from ARIBA_API_KEY env var.
-            client_secret: Ariba client secret. If not provided, reads from ARIBA_CLIENT_SECRET env var.
-            realm: Ariba realm. If not provided, reads from ARIBA_REALM env var.
+            username: Ariba API username. If not provided, reads from ARIBA_USERNAME env var.
+            password: Ariba API password. If not provided, reads from ARIBA_PASSWORD env var.
             base_url: Base URL for Ariba API. Defaults to https://api.ariba.com
         """
         # Load environment variables
         load_dotenv()
 
-        self.api_key = api_key or os.getenv('ARIBA_API_KEY')
-        self.client_secret = client_secret or os.getenv('ARIBA_CLIENT_SECRET')
-        self.realm = realm or os.getenv('ARIBA_REALM')
+        self.username = username or os.getenv('ARIBA_USERNAME')
+        self.password = password or os.getenv('ARIBA_PASSWORD')
         self.base_url = base_url
         self.token_url = f"{base_url}/v2/oauth/token"
 
@@ -43,10 +41,10 @@ class AribaAuthClient:
         self._token_expires_at: Optional[float] = None
 
         # Validate required credentials
-        if not self.api_key:
-            raise ValueError("API key is required. Set ARIBA_API_KEY environment variable or pass api_key parameter.")
-        if not self.client_secret:
-            raise ValueError("Client secret is required. Set ARIBA_CLIENT_SECRET environment variable or pass client_secret parameter.")
+        if not self.username:
+            raise ValueError("Username is required. Set ARIBA_USERNAME environment variable or pass username parameter.")
+        if not self.password:
+            raise ValueError("Password is required. Set ARIBA_PASSWORD environment variable or pass password parameter.")
 
     def get_bearer_token(self, force_refresh: bool = False) -> str:
         """
@@ -78,7 +76,7 @@ class AribaAuthClient:
 
     def _fetch_new_token(self) -> str:
         """
-        Fetch a new bearer token from Ariba API.
+        Fetch a new bearer token from Ariba API using Basic Authentication.
 
         Returns:
             Bearer token string
@@ -86,23 +84,24 @@ class AribaAuthClient:
         Raises:
             requests.exceptions.RequestException: If the API request fails
         """
-        # Prepare request payload
+        # Prepare request payload with grant_type
         payload = {
-            'grant_type': 'client_credentials',
-            'client_id': self.api_key,
-            'client_secret': self.client_secret
+            'grant_type': 'client_credentials'
         }
 
-        # Add realm if provided
-        if self.realm:
-            payload['realm'] = self.realm
+        # Create Basic Auth header (BASE64 encoded username:password)
+        credentials = f"{self.username}:{self.password}"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
 
         headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': f'Basic {encoded_credentials}'
         }
 
         try:
             print(f"Requesting bearer token from {self.token_url}...")
+            print(f"Using Basic Auth with username: {self.username}")
+
             response = requests.post(
                 self.token_url,
                 data=payload,

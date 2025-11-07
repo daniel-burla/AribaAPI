@@ -1,10 +1,10 @@
 # Ariba API Authentication Client
 
-A Python client for authenticating with SAP Ariba API and obtaining OAuth bearer tokens.
+A Python client for authenticating with SAP Ariba API and obtaining OAuth bearer tokens using Basic Authentication.
 
 ## Features
 
-- OAuth 2.0 client credentials authentication
+- OAuth 2.0 client credentials authentication with Basic Auth
 - Automatic token caching and refresh
 - Environment variable configuration
 - Token expiration management
@@ -13,7 +13,7 @@ A Python client for authenticating with SAP Ariba API and obtaining OAuth bearer
 ## Prerequisites
 
 - Python 3.7+
-- Ariba API credentials (API key, client secret, and realm)
+- Ariba API credentials (username and password)
 
 ## Installation
 
@@ -39,9 +39,8 @@ cp .env.example .env
 Create a `.env` file in the project root with your Ariba API credentials:
 
 ```env
-ARIBA_API_KEY=your_api_key_here
-ARIBA_CLIENT_SECRET=your_client_secret_here
-ARIBA_REALM=your_realm_here
+ARIBA_USERNAME=your_username_here
+ARIBA_PASSWORD=your_password_here
 ```
 
 ## Usage
@@ -82,9 +81,8 @@ from ariba_auth import AribaAuthClient
 
 # Initialize with explicit credentials
 client = AribaAuthClient(
-    api_key='your_api_key',
-    client_secret='your_secret',
-    realm='your_realm'
+    username='your_username',
+    password='your_password'
 )
 
 # Get token (cached if still valid)
@@ -106,14 +104,13 @@ client.clear_token()
 
 ### AribaAuthClient
 
-#### `__init__(api_key, client_secret, realm, base_url)`
+#### `__init__(username, password, base_url)`
 
 Initialize the authentication client.
 
 **Parameters:**
-- `api_key` (str, optional): Ariba API key. Defaults to `ARIBA_API_KEY` env var.
-- `client_secret` (str, optional): Ariba client secret. Defaults to `ARIBA_CLIENT_SECRET` env var.
-- `realm` (str, optional): Ariba realm. Defaults to `ARIBA_REALM` env var.
+- `username` (str, optional): Ariba API username. Defaults to `ARIBA_USERNAME` env var.
+- `password` (str, optional): Ariba API password. Defaults to `ARIBA_PASSWORD` env var.
 - `base_url` (str, optional): Base URL for Ariba API. Defaults to `https://api.ariba.com`
 
 #### `get_bearer_token(force_refresh=False)`
@@ -146,7 +143,7 @@ This client uses the Ariba OAuth 2.0 endpoint:
 https://api.ariba.com/v2/oauth/token
 ```
 
-The authentication follows the OAuth 2.0 client credentials flow.
+The authentication follows the OAuth 2.0 client credentials flow with Basic Authentication. The username and password are BASE64 encoded and sent in the Authorization header.
 
 ## Error Handling
 
